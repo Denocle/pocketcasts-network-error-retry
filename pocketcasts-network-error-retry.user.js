@@ -7,8 +7,9 @@
 // @grant           none
 // @version         0.1.0
 // @license         GPL-3.0-or-later; http://www.gnu.org/licenses/gpl-3.0.txt
+// @updateURL       https://github.com/Denocle/pocketcasts-network-error-retry/raw/master/pocketcasts-network-error-retry.user.js
+// @downloadURL     https://openuserjs.org/install/Denocle/PocketCasts_network_error_retry.user.js
 // ==/UserScript==
-
 (() => {
 	waitForKeyElements('div.error-title', viewBox => {
 		document.querySelector('.play_button').click();
