@@ -1,5 +1,5 @@
 ## PocketCasts network error retry - User script
 
-When PocketCasts gets a network error, this script tries to start the stream again.
+If you have a problem where PocketCasts randomly pauses your podcast due to a network error, yet it's fixed by just pressing play again, this is the scripy for you.
 
-Credits goes to [Realies](https://github.com/realies) for the `waitForKeyElements` script.
+This script listens for errors and when they occur, presses the play button for you.

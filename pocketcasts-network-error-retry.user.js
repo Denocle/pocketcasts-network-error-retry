@@ -3,15 +3,70 @@
 // @namespace       pocketcasts-network-error-retry
 // @description     When PocketCasts gets a network error, this script tries to start the stream again
 // @match           https://play.pocketcasts.com/*
-// @require         https://gist.githubusercontent.com/realies/2fece0cd3e197cf6b31ca1316431a2a4/raw/debc0e6d4d537ac228d1d71f44b1162979a5278c/waitForKeyElements.js
 // @grant           none
-// @version         0.1.0
+// @version         0.2.0
 // @license         GPL-3.0-or-later; http://www.gnu.org/licenses/gpl-3.0.txt
 // @updateURL       https://github.com/Denocle/pocketcasts-network-error-retry/raw/master/pocketcasts-network-error-retry.user.js
 // @downloadURL     https://openuserjs.org/install/Denocle/PocketCasts_network_error_retry.user.js
+// @run-at          document-start
 // ==/UserScript==
-(() => {
-	waitForKeyElements('div.error-title', viewBox => {
-		document.querySelector('.play_button').click();
-	}, true);
+
+// This "addEventListener" override example code is taken from: https://stackoverflow.com/a/22841712/1713635
+(function() {
+    Element.prototype._addEventListener = Element.prototype.addEventListener;
+    Element.prototype.addEventListener = function(a, b, c) {
+        this._addEventListener(a, b, c);
+        if (!this.eventListenerList) {
+            this.eventListenerList = {};
+        }
+        if (!this.eventListenerList[a]) {
+            this.eventListenerList[a] = [];
+        }
+        this.eventListenerList[a].push(b);
+    };
 })();
+
+function networkErrorRetryHandler(event) {
+    console.log('[Network Error Retry] Error event triggered', event);
+    if (!event.target.error) {
+        console.log('[Network Error Retry] No MediaError, nothing to handle');
+        return;
+    }
+    console.log('[Network Error Retry] MediaError found', event.target.error);
+    // Just empty src attribute, not real error
+    if (event.target.error.code === 4) {
+        console.log('[Network Error Retry] Just missing src attribute, nothing to fix');
+        return;
+    }
+    console.log('[Network Error Retry] Playing audio again');
+    event.target.play();
+}
+
+function attachHandler() {
+    // Run as interval in case the player element hasn't rendered yet
+    const i = setInterval(() => {
+        const player = document.querySelector('.audio');
+        if (player) {
+            player.addEventListener('error', networkErrorRetryHandler);
+            console.log('[Network Error Retry] Handler attached!');
+            clearInterval(i);
+            return;
+        }
+        console.log('[Network Error Retry] No player found');
+    }, 100);
+}
+
+// Start by attaching the handler
+console.log('[Network Error Retry] Running');
+attachHandler();
+
+// Every 5 seconds, make sure that our handler is still attached.
+// PocketCasts have a habit of removing our event listener.
+setInterval(() => {
+    const p = document.querySelector('.audio');
+    const attachedHandlers = p.eventListenerList.error.map(f => f.name);
+    if (!attachedHandlers.includes('networkErrorRetryHandler')) {
+        console.error('[Network Error Retry] Our handler is gone! Attaching again', p.eventListenerList.error);
+        attachHandler();
+    }
+}, 5000);
