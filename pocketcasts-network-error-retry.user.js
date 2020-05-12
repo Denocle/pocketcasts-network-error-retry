@@ -4,7 +4,7 @@
 // @description     When PocketCasts gets a network error, this script tries to start the stream again
 // @match           https://play.pocketcasts.com/*
 // @grant           none
-// @version         0.2.0
+// @version         0.2.1
 // @license         GPL-3.0-or-later; http://www.gnu.org/licenses/gpl-3.0.txt
 // @updateURL       https://github.com/Denocle/pocketcasts-network-error-retry/raw/master/pocketcasts-network-error-retry.user.js
 // @downloadURL     https://openuserjs.org/install/Denocle/PocketCasts_network_error_retry.user.js
@@ -63,10 +63,13 @@ attachHandler();
 // Every 5 seconds, make sure that our handler is still attached.
 // PocketCasts have a habit of removing our event listener.
 setInterval(() => {
-    const p = document.querySelector('.audio');
-    const attachedHandlers = p.eventListenerList.error.map(f => f.name);
+    const player = document.querySelector('.audio');
+    if (!player) {
+        return;
+    }
+    const attachedHandlers = player.eventListenerList.error.map(f => f.name);
     if (!attachedHandlers.includes('networkErrorRetryHandler')) {
-        console.error('[Network Error Retry] Our handler is gone! Attaching again', p.eventListenerList.error);
+        console.error('[Network Error Retry] Our handler is gone! Attaching again', player.eventListenerList.error);
         attachHandler();
     }
 }, 5000);
